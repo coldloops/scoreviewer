@@ -1,0 +1,12 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="scoreviewer">
+    <output-path>$PROJECT_DIR$/out/artifacts/scoreviewer</output-path>
+    <root id="archive" name="scoreviewer.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="scoreviewer" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/tablefilter-swing-5.3.1.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
