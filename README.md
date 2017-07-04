@@ -1,6 +1,6 @@
 
 
-##osumania-score-viewer
+## osumania-score-viewer
 
 This program allows you to visualize osumania scores in a table that can be filtered.
 It reads the scores from the scores.db file in your osu directory,
@@ -9,7 +9,7 @@ it also reads the osu!.db file to display beatmap information.
 ### how to use
 
 * make sure you have java 7 or higher: https://java.com
-* download the program here: 
+* download scoreviewer.jar here: https://github.com/coldloops/scoreviewer/releases/latest
 * open the program, click "open DB" and select your osu folder.
 * click on the columns to sort
 * type in filters on the textbox under each column
