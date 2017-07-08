@@ -10,11 +10,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.*;
 import java.util.List;
 
 public class Interface {
-    private static final String VERSION = "V. 1.0  ";
+    private static final String VERSION = "V. 1.1  ";
     private static final String OSU_DB = "osu!.db";
     private static final String SCORES_DB = "scores.db";
     private JButton btnOpen;
@@ -134,7 +136,26 @@ public class Interface {
         }
     }
 
+    public static void showExceptionDialog(Throwable e) {
+        final JTextArea textArea = new JTextArea();
+        textArea.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        textArea.setEditable(false);
+        StringWriter writer = new StringWriter();
+        e.printStackTrace(new PrintWriter(writer));
+        textArea.setText(writer.toString());
+        textArea.setCaretPosition(0);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(400, 200));
+        JOptionPane.showMessageDialog(null, scrollPane, "An Error Has Occurred", JOptionPane.ERROR_MESSAGE);
+    }
+
     public static void main(String[] args) throws Exception {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                showExceptionDialog(e);
+            }
+        });
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
