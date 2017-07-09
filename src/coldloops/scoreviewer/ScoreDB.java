@@ -71,6 +71,10 @@ class ScoreDB {
         s.timestamp = buf.getLong();
         s.empty2 = buf.getInt();
         s.score_id = buf.getLong();
+        // extra target practice mod stuff
+        if(Mod.TP.isEnabled(s.mods)) {
+            buf.getLong();
+        }
         return s;
     }
 
@@ -99,18 +103,33 @@ class ScoreDB {
 
     enum Mod {
 
-        NF(1),
-        EZ(2),
-        HD(8),
-        HR(16),
-        SD(32),
-        DT(64),
-        HT(256),
-        NC(512),
-        FL(1024),
-        PF(16384),
-        FI(1048576),
-        RD(2097152);
+        NF(1),         // no fail
+        EZ(2),         // easy
+        HD(8),         // hidden
+        HR(16),        // hard rock
+        SD(32),        // sudden death
+        DT(64),        // double time
+        RL(128),       // relax, std only
+        HT(256),       // half time
+        NC(512),       // night core
+        FL(1024),      // flash light
+        AP(2048),      // auto play
+        SO(4096),      // spun out, std only
+        RL2(8192),     // relax2, std only
+        PF(16384),     // perfect
+        K4(32768),     // key 4
+        K5(65536),     // key 5
+        K6(131072),    // key 6
+        K7(262144),    // key 7
+        K8(524288),    // key 8
+        FI(1048576),   // fade in
+        RD(2097152),   // random
+        TP(8388608),   // target-practice, std only
+        K9(16777216),  // key 9
+        K10(33554432), // key 10
+        K1(67108864),  // key 1
+        K3(134217728), // key 3
+        K2(268435456); // key 2
 
         final int value;
         Mod(int v) { this.value = v; }
@@ -118,11 +137,15 @@ class ScoreDB {
         static List<Mod> fromInt(int mods) {
             ArrayList<Mod> l = new ArrayList<>();
             for (Mod m : values()) {
-                if ((mods & m.value) == m.value) {
+                if(m.isEnabled(mods)) {
                     l.add(m);
                 }
             }
             return l;
+        }
+
+        boolean isEnabled(int mods) {
+            return ((mods & value) == value);
         }
     }
 }
