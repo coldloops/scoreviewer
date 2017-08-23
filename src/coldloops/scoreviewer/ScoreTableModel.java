@@ -30,7 +30,7 @@ class ScoreTableModel extends AbstractTableModel {
         new Col("diff", null, String.class),
         new Col("stars", "star rating", Double.class),
         new Col("score", null, Double.class),
-        new Col("ratio", "rainbow ratio / total", Double.class),
+        new Col("ratio", "rainbow ratio / 300", Double.class),
         new Col("acc", "accuracy", Double.class),
         new Col("mods", null, String.class),
         new Col("status", "ranked status", OsuDB.RankStatus.class),
@@ -84,7 +84,7 @@ class ScoreTableModel extends AbstractTableModel {
         if(l.contains(ScoreDB.Mod.DT)) {
             time_mult = 2 / 3d;
         }
-        double ratio = 100 * ScoreDB.rratio(s);
+        double ratio = ScoreDB.rratio(s);
         double acc = 100 * ScoreDB.acc(s);
         int total_obj = b.n_hitcircles + b.n_sliders;
         double time = time_mult * ((double) b.total_time) / 1000d;

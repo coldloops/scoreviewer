@@ -33,8 +33,13 @@ class ScoreDB {
         return (double) points / (total * 300);
     }
 
-    // rainbow ratio
+    // rainbow ratio max / 300
     static double rratio(Score s) {
+        return (double) s.cmax / s.c300;
+    }
+
+    // rainbow ratio max / total
+    static double rratio2(Score s) {
         int total = s.c0 + s.c50 + s.c100 + s.c200 + s.c300 + s.cmax;
         return (double) s.cmax / total;
     }
