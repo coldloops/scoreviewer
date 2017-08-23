@@ -38,11 +38,13 @@ class ScoreTableModel extends AbstractTableModel {
         new Col("keys", null, Double.class),
         new Col("length", "total length (seconds)", Double.class),
         new Col("density", "average notes per second", Double.class),
-        new Col("LN%", "long note percentage", Double.class)
+        new Col("LN%", "long note percentage", Double.class),
+        new Col("perfect", "perfect combo", Boolean.class)
     };
 
     // columns hidden by default
     static final String[] hiddenColumns = new String[] {
+        "perfect"
     };
 
     private final ArrayList<Object[]> data = new ArrayList<>();
@@ -108,7 +110,8 @@ class ScoreTableModel extends AbstractTableModel {
                 (double) b.circle_size,
                 time,
                 den,
-                ln_perc
+                ln_perc,
+                s.perfect!=0
         });
     }
 
