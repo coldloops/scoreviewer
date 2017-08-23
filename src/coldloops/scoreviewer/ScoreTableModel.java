@@ -41,6 +41,10 @@ class ScoreTableModel extends AbstractTableModel {
         new Col("LN%", "long note percentage", Double.class)
     };
 
+    // columns hidden by default
+    static final String[] hiddenColumns = new String[] {
+    };
+
     private final ArrayList<Object[]> data = new ArrayList<>();
 
     void readScoreTable(File osuDB, File scoreDB) {
@@ -126,25 +130,15 @@ class ScoreTableModel extends AbstractTableModel {
         }
     }
 
-    public Object getValueAt(int row, int col) {
-        return data.get(row)[col];
-    }
+    public Object getValueAt(int row, int col) { return data.get(row)[col]; }
 
-    public int getColumnCount() {
-        return headers.length;
-    }
+    public int getColumnCount() { return headers.length; }
 
-    public int getRowCount() {
-        return data.size();
-    }
+    public int getRowCount() { return data.size(); }
 
-    public String getColumnName(int col) {
-        return headers[col].name;
-    }
+    public String getColumnName(int col) { return headers[col].name; }
 
-    public String getColumnTooltip(int col) {
-        return headers[col].tooltip;
-    }
+    public String getColumnTooltip(int col) { return headers[col].tooltip; }
 
     public Class<?> getColumnClass(int col) { return headers[col].type; }
 }

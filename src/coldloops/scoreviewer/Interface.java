@@ -38,8 +38,12 @@ public class Interface {
         table.getTableHeader().setFont(f);
         stm = new ScoreTableModel();
         table.setModel(stm);
-        TableFilterHeader filterHeader = new TableFilterHeader(table, AutoChoices.DISABLED);
+        TableFilterHeader filterHeader = new TableFilterHeader(table, AutoChoices.ENUMS);
         filterHeader.setFilterOnUpdates(true);
+        TableColumnManager tcm = new TableColumnManager(table);
+        for(String col : ScoreTableModel.hiddenColumns) {
+            tcm.hideColumn(col);
+        }
         btnOpen.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
