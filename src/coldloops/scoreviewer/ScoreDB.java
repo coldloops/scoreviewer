@@ -134,7 +134,8 @@ class ScoreDB {
         K10(33554432), // key 10
         K1(67108864),  // key 1
         K3(134217728), // key 3
-        K2(268435456); // key 2
+        K2(268435456), // key 2
+        ScoreV2(536870912);// ScoreV2
 
         final int value;
         Mod(int v) { this.value = v; }
