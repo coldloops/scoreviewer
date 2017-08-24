@@ -39,23 +39,26 @@ class ScoreTableModel extends AbstractTableModel {
         new Col("length", "total length (seconds)", Double.class),
         new Col("density", "average notes per second", Double.class),
         new Col("LN%", "long note percentage", Double.class),
-        new Col("perfect", "perfect combo", Boolean.class)
+        new Col("perfect", "perfect combo", Boolean.class),
+        new Col("collections", null, List.class)
     };
 
     // columns hidden by default
     static final String[] hiddenColumns = new String[] {
-        "perfect"
+        "perfect",
+        "collections"
     };
 
     private final ArrayList<Object[]> data = new ArrayList<>();
 
-    void readScoreTable(File osuDB, File scoreDB) {
+    void readScoreTable(File osuDB, File scoreDB, File collecDB) {
         OsuDB o = OsuDB.readOsuDB(readBufferFromFile(osuDB));
         ScoreDB s = ScoreDB.readScoreDB(readBufferFromFile(scoreDB));
-        readScoreTable(o, s);
+        CollectionDB c = CollectionDB.readCollectionDB(readBufferFromFile(collecDB));
+        readScoreTable(o, s, c);
     }
 
-    private void readScoreTable(OsuDB o, ScoreDB s) {
+    private void readScoreTable(OsuDB o, ScoreDB s, CollectionDB c) {
         data.clear();
         for (Map.Entry<String, OsuDB.BeatmapInfo> e : o.beatmaps.entrySet()) {
             OsuDB.BeatmapInfo b = e.getValue();
@@ -66,12 +69,13 @@ class ScoreTableModel extends AbstractTableModel {
             // scores are ordered max->min
             // first is the highest
             ScoreDB.Score s0 = bs.scores[0];
-            addRow(b, s0);
+
+            addRow(b, s0, c);
         }
         fireTableDataChanged();
     }
 
-    private void addRow(OsuDB.BeatmapInfo b, ScoreDB.Score s) {
+    private void addRow(OsuDB.BeatmapInfo b, ScoreDB.Score s, CollectionDB c) {
         double diff = b.mania_star_rating.get(0);
         if (s.mods > 0 && b.mania_star_rating.containsKey(s.mods)) {
             diff = b.mania_star_rating.get(s.mods);
@@ -93,6 +97,8 @@ class ScoreTableModel extends AbstractTableModel {
         double ln_perc = 100 * b.n_sliders / (double) total_obj;
         double den = ((double) total_obj) / time;
 
+        List<String> collecs = c.findCollections(b.beatmap_hash);
+
         String mods = "--";
         if(l.size() > 0) mods = joinStrings(", ", l);
 
@@ -111,7 +117,8 @@ class ScoreTableModel extends AbstractTableModel {
                 time,
                 den,
                 ln_perc,
-                s.perfect!=0
+                s.perfect!=0,
+                collecs
         });
     }
 

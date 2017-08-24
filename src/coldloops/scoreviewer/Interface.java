@@ -16,15 +16,17 @@ import java.nio.file.*;
 import java.util.List;
 
 public class Interface {
-    private static final String VERSION = "V. 1.2  ";
+    private static final String VERSION = "V. 1.3  ";
     private static final String OSU_DB = "osu!.db";
     private static final String SCORES_DB = "scores.db";
+    private static final String COLLECTION_DB = "collection.db";
     private JButton btnOpen;
     private JTable table;
     private JPanel mainPanel;
     private JLabel lblVersion;
     private File osuDB = null;
     private File scoresDB = null;
+    private File collecDB = null;
     private final ScoreTableModel stm;
 
     private FileWatcher fw = null;
@@ -55,7 +57,8 @@ public class Interface {
                     File dir = fc.getSelectedFile();
                     osuDB = new File(dir, OSU_DB);
                     scoresDB = new File(dir, SCORES_DB);
-                    if (osuDB.exists() && scoresDB.exists()) {
+                    collecDB = new File(dir, COLLECTION_DB);
+                    if (osuDB.exists() && scoresDB.exists() && collecDB.exists()) {
                         if (fw != null) fw.cancel(true);
                         fw = new FileWatcher(dir);
                         reloadData();
@@ -69,8 +72,8 @@ public class Interface {
     }
 
     private void reloadData() {
-        if (osuDB.exists() && scoresDB.exists()) {
-            stm.readScoreTable(osuDB, scoresDB);
+        if (osuDB.exists() && scoresDB.exists() && collecDB.exists()) {
+            stm.readScoreTable(osuDB, scoresDB, collecDB);
         }
     }
 
