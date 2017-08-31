@@ -39,7 +39,7 @@ class ScoreDB {
     }
 
     // rainbow ratio max / total
-    static double rratio2(Score s) {
+    static double rratioMax(Score s) {
         int total = s.c0 + s.c50 + s.c100 + s.c200 + s.c300 + s.cmax;
         return (double) s.cmax / total;
     }
@@ -152,6 +152,24 @@ class ScoreDB {
 
         boolean isEnabled(int mods) {
             return ((mods & value) == value);
+        }
+    }
+
+    public static class Judgment implements Comparable<Judgment> {
+
+        final Score s;
+
+        Judgment(Score s) {
+            this.s = s;
+        }
+
+        @Override
+        public int compareTo(Judgment j) {
+            return Integer.compare(s.score, j.s.score);
+        }
+
+        public String toString() {
+            return String.format("%d , %d , %d , %d , %d , %d", s.cmax,s.c300,s.c200,s.c100,s.c50,s.c0);
         }
     }
 }

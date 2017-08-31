@@ -40,13 +40,17 @@ class ScoreTableModel extends AbstractTableModel {
         new Col("density", "average notes per second", Double.class),
         new Col("LN%", "long note percentage", Double.class),
         new Col("perfect", "perfect combo", Boolean.class),
-        new Col("collections", null, List.class)
+        new Col("collections", null, List.class),
+        new Col("MAX%", "max percentage / total", Double.class),
+        new Col("judgments", "max,300,200,100,50,miss", ScoreDB.Judgment.class),
     };
 
     // columns hidden by default
     static final String[] hiddenColumns = new String[] {
         "perfect",
-        "collections"
+        "collections",
+        "MAX%",
+        "judgments",
     };
 
     private final ArrayList<Object[]> data = new ArrayList<>();
@@ -96,6 +100,7 @@ class ScoreTableModel extends AbstractTableModel {
         double time = time_mult * ((double) b.total_time) / 1000d;
         double ln_perc = 100 * b.n_sliders / (double) total_obj;
         double den = ((double) total_obj) / time;
+        double maxp = 100 * ScoreDB.rratioMax(s);
 
         List<String> collecs = c.findCollections(b.beatmap_hash);
 
@@ -118,7 +123,9 @@ class ScoreTableModel extends AbstractTableModel {
                 den,
                 ln_perc,
                 s.perfect!=0,
-                collecs
+                collecs,
+                maxp,
+                new ScoreDB.Judgment(s),
         });
     }
 
