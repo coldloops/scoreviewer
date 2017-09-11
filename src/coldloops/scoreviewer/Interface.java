@@ -1,6 +1,7 @@
 package coldloops.scoreviewer;
 
 import net.coderazzi.filters.gui.AutoChoices;
+import net.coderazzi.filters.gui.FilterSettings;
 import net.coderazzi.filters.gui.TableFilterHeader;
 
 import javax.swing.*;
@@ -16,7 +17,7 @@ import java.nio.file.*;
 import java.util.List;
 
 public class Interface {
-    private static final String VERSION = "V. 1.3  ";
+    private static final String VERSION = "V. 1.4  ";
     private static final String OSU_DB = "osu!.db";
     private static final String SCORES_DB = "scores.db";
     private static final String COLLECTION_DB = "collection.db";
@@ -40,6 +41,7 @@ public class Interface {
         table.getTableHeader().setFont(f);
         stm = new ScoreTableModel();
         table.setModel(stm);
+        FilterSettings.parserModelClass = CustomParserModel.class;
         TableFilterHeader filterHeader = new TableFilterHeader(table, AutoChoices.ENUMS);
         filterHeader.setFilterOnUpdates(true);
         TableColumnManager tcm = new TableColumnManager(table);
