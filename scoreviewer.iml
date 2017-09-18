@@ -8,5 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="tablefilter-swing-5.3.1" level="project" />
+    <orderEntry type="library" name="xz-1.6" level="project" />
+    <orderEntry type="library" name="xchart-3.5.0" level="project" />
   </component>
 </module>

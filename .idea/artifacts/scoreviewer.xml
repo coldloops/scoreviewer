@@ -7,6 +7,8 @@
       </element>
       <element id="module-output" name="scoreviewer" />
       <element id="extracted-dir" path="$PROJECT_DIR$/tablefilter-swing-5.3.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/xchart-3.5.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/xz-1.6.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
