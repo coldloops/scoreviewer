@@ -1,5 +1,6 @@
 package coldloops.scoreviewer;
 
+import org.knowm.xchart.SwingWrapper;
 import org.tukaani.xz.LZMAInputStream;
 
 import java.io.ByteArrayInputStream;
@@ -30,16 +31,21 @@ class Osr {
     long unknown;
 
     public static void main(String[] args) throws Exception {
-        File f = new File("testdata/a.osr");
-        File f2 = new File("testdata/a.osu");
+        // osr name is
+        // <beatmap_hash>-<xticks>.osr
+        // xticks is (score.timestamp - 504911232000000000)
+
+        File f = new File("testdata/b.osr");
+        File f2 = new File("testdata/b.osu");
         ByteBuffer b = readBufferFromFile(f);
         Osr r = readOsr(b);
         OsuMap m = readOsuObjs(f2);
 
-        calcTimingErrors(m, r.replay_data);
+        List<TimingError> tes = calcTimingErrors(m, r.replay_data);
+        new SwingWrapper<>(Chart.makeChart(tes)).displayChart();
     }
 
-    static void calcTimingErrors(OsuMap map, List<ReplayFrame> replay) {
+    static List<TimingError> calcTimingErrors(OsuMap map, List<ReplayFrame> replay) {
         int curtime = 0;
         List<Integer> times = new ArrayList<>();
         times.addAll(map.objs.keySet());
@@ -47,6 +53,7 @@ class Osr {
         int [] idx = new int[map.keys];
         boolean [] holds = new boolean[map.keys];
         int gate_limit = 120;
+        ArrayList<TimingError> tes = new ArrayList<>();
         for(ReplayFrame rf : replay) {
             curtime += rf.w;
             for(int k = 1; k <= map.keys; k++) {
@@ -65,21 +72,22 @@ class Osr {
                 int obj = map.objs.get(t).get(k);
                 if(is_pressed && (!is_held) && obj == 1 && checkRange(t, curtime-gate_limit, curtime+gate_limit)) {
                     int delta = curtime-t;
-                    System.out.println(delta+"\t"+curtime+"\t"+k+"\tSN");
+                    tes.add(new TimingError(delta,curtime,k,"SN"));
                     map.objs.get(t).remove(k);
                 }
                 else if(is_pressed && (!is_held) && obj == 2 && checkRange(t, curtime-1.2*gate_limit, curtime+1.2*gate_limit)) {
                     int delta = curtime-t;
-                    System.out.println(delta+"\t"+curtime+"\t"+k+"\tLN-start");
+                    tes.add(new TimingError(delta,curtime,k,"LN-start"));
                     map.objs.get(t).remove(k);
                 }
                 else if(!is_pressed && obj == 3 && checkRange(t, curtime-2.4*gate_limit, curtime+2.4*gate_limit)) {
                     int delta = curtime-t;
-                    System.out.println(delta+"\t"+curtime+"\t"+k+"\tLN-end");
+                    tes.add(new TimingError(delta, curtime, k, "LN-end"));
                     map.objs.get(t).remove(k);
                 }
             }
         }
+        return tes;
     }
 
     private static boolean checkRange(double x, double lo, double hi) {
@@ -229,5 +237,18 @@ class Osr {
     static class OsuMap {
         int keys;
         TreeMap<Integer, TreeMap<Integer, Integer>> objs = new TreeMap<>();
+    }
+
+    static class TimingError {
+        int delta;
+        int curtime;
+        int key;
+        String tag;
+        TimingError(int delta, int curtime, int key, String tag) {
+            this.delta = delta;
+            this.curtime = curtime;
+            this.key = key;
+            this.tag = tag;
+        }
     }
 }
