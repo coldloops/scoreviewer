@@ -4,14 +4,15 @@
 
 This program allows you to visualize osumania scores in a table that can be filtered.
 It reads the scores from the scores.db file in your osu directory,
-it also reads the osu!.db file to display beatmap information.
+it also reads osu!.db and collection.db files to display beatmap information.
 
 ### how to use
 
 * make sure you have java 7 or higher: https://java.com
 * download scoreviewer.jar here: https://github.com/coldloops/scoreviewer/releases/latest
-* open the program, click "open DB" and select your osu folder.
+* open the program, click "open DB" and select your osu folder
 * click on the columns to sort
+* right click on columns to toggle show/hide
 * type in filters on the textbox under each column
 * the table updates automatically as you play (osu updates the files every 10 min or so,\
 the program updates the table every time the file updates.)
@@ -21,6 +22,8 @@ the program updates the table every time the file updates.)
 There are 3 types of columns, for text you can just type what you are looking for,
 for numbers you can use operators (>, <, =), for example "> 4" to search "all above 4".
 Dates are similar to numbers, "<1/1/2017" searches for scores older than 2017.
+
+The number columns can also be filtered by a range by typing for example: ">3 & <5".
 
 ### License
 

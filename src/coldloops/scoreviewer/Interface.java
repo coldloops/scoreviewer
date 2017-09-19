@@ -17,7 +17,7 @@ import java.nio.file.*;
 import java.util.List;
 
 public class Interface {
-    private static final String VERSION = "V. 1.4  ";
+    private static final String VERSION = "V. 1.5  ";
     private static final String OSU_DB = "osu!.db";
     private static final String SCORES_DB = "scores.db";
     private static final String COLLECTION_DB = "collection.db";
@@ -25,11 +25,11 @@ public class Interface {
     private JTable table;
     private JPanel mainPanel;
     private JLabel lblVersion;
+    private JButton btnPlot;
     private File osuDB = null;
     private File scoresDB = null;
     private File collecDB = null;
     private final ScoreTableModel stm;
-
     private FileWatcher fw = null;
 
     public Interface() {
@@ -41,8 +41,9 @@ public class Interface {
         table.getTableHeader().setFont(f);
         stm = new ScoreTableModel();
         table.setModel(stm);
-        FilterSettings.parserModelClass = CustomParserModel.class;
-        TableFilterHeader filterHeader = new TableFilterHeader(table, AutoChoices.ENUMS);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        FilterSettings.parserModelClass = CustomParser.Model.class;
+        final TableFilterHeader filterHeader = new TableFilterHeader(table, AutoChoices.ENUMS);
         filterHeader.setFilterOnUpdates(true);
         TableColumnManager tcm = new TableColumnManager(table);
         for(String col : ScoreTableModel.hiddenColumns) {
@@ -69,6 +70,25 @@ public class Interface {
                         JOptionPane.showMessageDialog(mainPanel, "Could not find db files.");
                     }
                 }
+            }
+        });
+        btnPlot.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+            int row = table.getSelectedRow();
+            if(row < 0) {
+                JOptionPane.showMessageDialog(mainPanel, "Select a valid score.");
+                return;
+            }
+            row = table.convertRowIndexToModel(row);
+            OsuDB.BeatmapInfo bi = stm.getBeatmapInfoAt(row);
+            ScoreDB.Score s = stm.getScoreAt(row);
+            long xticks = s.timestamp - 504911232000000000L; // idk why
+            String osr_file = s.beatmap_hash+"-"+xticks+".osr";
+            // File osr = new File(DIR+"/Data/r/"+osr_file);
+            // File osu = new File(DIR+"/Songs/"+bi.folder_name+"/"+bi.osu_filename);
+            // TODO: check if file exists
+            // Osr.makeTimingDeltaChart(osu, osr);
             }
         });
     }

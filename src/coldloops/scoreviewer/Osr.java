@@ -5,6 +5,7 @@ import org.tukaani.xz.LZMAInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -13,7 +14,6 @@ import java.nio.file.Files;
 import java.util.*;
 
 class Osr {
-
     byte mode;
     int version;
     String beatmap_hash;
@@ -30,22 +30,24 @@ class Osr {
     List<ReplayFrame> replay_data;
     long unknown;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         // osr name is
         // <beatmap_hash>-<xticks>.osr
         // xticks is (score.timestamp - 504911232000000000)
 
-        File f = new File("testdata/b.osr");
-        File f2 = new File("testdata/b.osu");
-        ByteBuffer b = readBufferFromFile(f);
-        Osr r = readOsr(b);
-        OsuMap m = readOsuObjs(f2);
+        File f = new File("testdata/a.osr");
+        File f2 = new File("testdata/a.osu");
+        makeTimingDeltaChart(f2, f);
+    }
 
-        List<TimingError> tes = calcTimingErrors(m, r.replay_data);
+    static void makeTimingDeltaChart(File osuMap, File replay) {
+        Osr r = readOsr(readBufferFromFile(replay));
+        OsuMap m = readOsuObjs(osuMap);
+        List<TimingDelta> tes = calcTimingDeltas(m, r.replay_data);
         new SwingWrapper<>(Chart.makeChart(tes)).displayChart();
     }
 
-    static List<TimingError> calcTimingErrors(OsuMap map, List<ReplayFrame> replay) {
+    static List<TimingDelta> calcTimingDeltas(OsuMap map, List<ReplayFrame> replay) {
         int curtime = 0;
         List<Integer> times = new ArrayList<>();
         times.addAll(map.objs.keySet());
@@ -53,7 +55,7 @@ class Osr {
         int [] idx = new int[map.keys];
         boolean [] holds = new boolean[map.keys];
         int gate_limit = 120;
-        ArrayList<TimingError> tes = new ArrayList<>();
+        ArrayList<TimingDelta> tes = new ArrayList<>();
         for(ReplayFrame rf : replay) {
             curtime += rf.w;
             for(int k = 1; k <= map.keys; k++) {
@@ -61,30 +63,33 @@ class Osr {
                 boolean is_pressed = rf.isPressed(k);
                 boolean is_held = is_pressed && holds[k-1];
                 holds[k-1] = is_pressed;
-                while(!(idx[k-1]+1 >= times.size() ||
-                    (map.objs.containsKey(t) && map.objs.get(t).containsKey(k) &&
-                    t >= curtime - 2.4*gate_limit))) {
+
+                // find the next obj
+                while(idx[k-1] < times.size()-1 && ((!map.objs.containsKey(t) || !map.objs.get(t).containsKey(k)) || t < curtime-2.4*gate_limit)) {
                     idx[k-1]++;
                     t = times.get(idx[k-1]);
                 }
                 if(!map.objs.containsKey(t)) continue;
                 if(!map.objs.get(t).containsKey(k)) continue;
                 int obj = map.objs.get(t).get(k);
+                int delta = curtime-t;
                 if(is_pressed && (!is_held) && obj == 1 && checkRange(t, curtime-gate_limit, curtime+gate_limit)) {
-                    int delta = curtime-t;
-                    tes.add(new TimingError(delta,curtime,k,"SN"));
+                    tes.add(new TimingDelta(delta,curtime,k,"SN"));
                     map.objs.get(t).remove(k);
                 }
                 else if(is_pressed && (!is_held) && obj == 2 && checkRange(t, curtime-1.2*gate_limit, curtime+1.2*gate_limit)) {
-                    int delta = curtime-t;
-                    tes.add(new TimingError(delta,curtime,k,"LN-start"));
+                    tes.add(new TimingDelta(delta,curtime,k,"LN"));
                     map.objs.get(t).remove(k);
                 }
                 else if(!is_pressed && obj == 3 && checkRange(t, curtime-2.4*gate_limit, curtime+2.4*gate_limit)) {
-                    int delta = curtime-t;
-                    tes.add(new TimingError(delta, curtime, k, "LN-end"));
+                    tes.add(new TimingDelta(delta, curtime, k, "LN"));
                     map.objs.get(t).remove(k);
                 }
+            }
+        }
+        for(Integer t : map.objs.keySet()) {
+            for(Integer k : map.objs.get(t).keySet()) {
+                tes.add(new TimingDelta(gate_limit, t, k, "MISS"));
             }
         }
         return tes;
@@ -94,8 +99,13 @@ class Osr {
         return x >= lo && x <= hi;
     }
 
-    private static OsuMap readOsuObjs(File f) throws Exception {
-        List<String> lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
+    private static OsuMap readOsuObjs(File f) {
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         boolean read_hit_objs = false;
         OsuMap map = new OsuMap();
         for (String s : lines) {
@@ -145,7 +155,7 @@ class Osr {
         }
     }
 
-    private static Osr readOsr(ByteBuffer buf) throws Exception {
+    private static Osr readOsr(ByteBuffer buf) {
         Osr o = new Osr();
         o.mode = buf.get();
         o.version = buf.getInt();
@@ -171,7 +181,12 @@ class Osr {
 
         // decode replay_data
         o.replay_data = new ArrayList<>();
-        Scanner s = new Scanner(new LZMAInputStream(new ByteArrayInputStream(replay_data))).useDelimiter(",");
+        Scanner s;
+        try {
+            s = new Scanner(new LZMAInputStream(new ByteArrayInputStream(replay_data))).useDelimiter(",");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         while(s.hasNext()) {
             String parts [] = s.next().split("\\|");
             int w = Integer.parseInt(parts[0]);
@@ -239,16 +254,16 @@ class Osr {
         TreeMap<Integer, TreeMap<Integer, Integer>> objs = new TreeMap<>();
     }
 
-    static class TimingError {
+    static class TimingDelta {
         int delta;
         int curtime;
         int key;
-        String tag;
-        TimingError(int delta, int curtime, int key, String tag) {
+        String type;
+        TimingDelta(int delta, int curtime, int key, String type) {
             this.delta = delta;
             this.curtime = curtime;
             this.key = key;
-            this.tag = tag;
+            this.type = type;
         }
     }
 }

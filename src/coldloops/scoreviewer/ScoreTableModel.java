@@ -54,6 +54,8 @@ class ScoreTableModel extends AbstractTableModel {
     };
 
     private final ArrayList<Object[]> data = new ArrayList<>();
+    private final ArrayList<OsuDB.BeatmapInfo> cache_bi = new ArrayList<>();
+    private final ArrayList<ScoreDB.Score> cache_s = new ArrayList<>();
 
     void readScoreTable(File osuDB, File scoreDB, File collecDB) {
         OsuDB o = OsuDB.readOsuDB(readBufferFromFile(osuDB));
@@ -64,6 +66,8 @@ class ScoreTableModel extends AbstractTableModel {
 
     private void readScoreTable(OsuDB o, ScoreDB s, CollectionDB c) {
         data.clear();
+        cache_bi.clear();
+        cache_s.clear();
         for (Map.Entry<String, OsuDB.BeatmapInfo> e : o.beatmaps.entrySet()) {
             OsuDB.BeatmapInfo b = e.getValue();
             if (b.gameplay_mode != 3) continue; // only mania beatmaps
@@ -75,6 +79,8 @@ class ScoreTableModel extends AbstractTableModel {
             ScoreDB.Score s0 = bs.scores[0];
 
             addRow(b, s0, c);
+            cache_bi.add(b);
+            cache_s.add(s0);
         }
         fireTableDataChanged();
     }
@@ -146,6 +152,9 @@ class ScoreTableModel extends AbstractTableModel {
             throw new RuntimeException(e);
         }
     }
+
+    public OsuDB.BeatmapInfo getBeatmapInfoAt(int row) { return cache_bi.get(row); }
+    public ScoreDB.Score getScoreAt(int row) { return cache_s.get(row); }
 
     public Object getValueAt(int row, int col) { return data.get(row)[col]; }
 

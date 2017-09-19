@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="xz-1.6">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/xz-1.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libs/xz-1.6.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
