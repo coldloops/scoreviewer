@@ -21,6 +21,7 @@ public class Interface {
     private static final String OSU_DB = "osu!.db";
     private static final String SCORES_DB = "scores.db";
     private static final String COLLECTION_DB = "collection.db";
+    private final JFrame frame;
     private JButton btnOpen;
     private JTable table;
     private JPanel mainPanel;
@@ -33,7 +34,8 @@ public class Interface {
     private final ScoreTableModel stm;
     private FileWatcher fw = null;
 
-    public Interface() {
+    public Interface(final JFrame frame) {
+        this.frame = frame;
         lblVersion.setText(VERSION);
         lblVersion.setFont(new Font("SansSerif", Font.ITALIC, 12));
         Font f = new Font("SansSerif", Font.PLAIN, 16);
@@ -76,28 +78,31 @@ public class Interface {
         btnPlot.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-            int row = table.getSelectedRow();
-            if(row < 0) {
-                JOptionPane.showMessageDialog(mainPanel, "Select a valid score.");
-                return;
-            }
-            row = table.convertRowIndexToModel(row);
-            OsuDB.BeatmapInfo bi = stm.getBeatmapInfoAt(row);
-            ScoreDB.Score s = stm.getScoreAt(row);
-            long xticks = s.timestamp - 504911232000000000L; // idk why
-            String osr_file = s.beatmap_hash+"-"+xticks+".osr";
-            final File osr = new File(osuDIR+"/Data/r/"+osr_file);
-            final File osu = new File(osuDIR+"/Songs/"+bi.folder_name+"/"+bi.osu_filename);
-            System.out.println(osr);
-            System.out.println(osu);
-            if(osu.exists() && osr.exists()) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Osr.makeTimingDeltaChart(osu, osr);
-                    }
-                }).start();
-            }
+                int row = table.getSelectedRow();
+                if(row < 0) {
+                    JOptionPane.showMessageDialog(mainPanel, "Select a valid score.");
+                    return;
+                }
+                row = table.convertRowIndexToModel(row);
+                OsuDB.BeatmapInfo bi = stm.getBeatmapInfoAt(row);
+                ScoreDB.Score s = stm.getScoreAt(row);
+                long xticks = s.timestamp - 504911232000000000L; // idk why
+                String osr_file = s.beatmap_hash+"-"+xticks+".osr";
+                {
+                    Path osr = Paths.get(osuDIR.getAbsolutePath(), "Data", "r", osr_file);
+                    Path osu = Paths.get(osuDIR.getAbsolutePath(), "Songs", bi.folder_name.replaceAll("\\\\","/"), bi.osu_filename);
+                    //System.out.println(osr);
+                    //System.out.println(osu);
+                }
+                final File osr = new File("testdata/a.osr");
+                final File osu = new File("testdata/a.osu");
+
+                if(osu.exists() && osr.exists()) {
+                    new ChartDialog(frame, osu, osr).display();
+                }
+                else {
+                    JOptionPane.showMessageDialog(mainPanel, "No replay found for this score.");
+                }
             }
         });
     }
@@ -199,8 +204,9 @@ public class Interface {
             public void run() {
                 setLAF();
                 JFrame frame = new JFrame();
+                Interface i = new Interface(frame);
                 frame.setTitle("OsuMania Score Viewer");
-                frame.setContentPane(new Interface().mainPanel);
+                frame.setContentPane(i.mainPanel);
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.pack();
                 frame.setVisible(true);

@@ -1,12 +1,10 @@
 package coldloops.scoreviewer;
 
-import org.knowm.xchart.SwingWrapper;
 import org.tukaani.xz.LZMAInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -35,16 +33,17 @@ class Osr {
         // <beatmap_hash>-<xticks>.osr
         // xticks is (score.timestamp - 504911232000000000)
 
-        File f = new File("testdata/a.osr");
-        File f2 = new File("testdata/a.osu");
-        makeTimingDeltaChart(f2, f);
+        File replay = new File("testdata/b.osr");
+        File osu = new File("testdata/b.osu");
+        new ChartDialog(null, osu, replay).display();
+        //makeTimingDeltaChart(f2, f);
+        System.out.println("test");
     }
 
-    static void makeTimingDeltaChart(File osuMap, File replay) {
+    static List<TimingDelta> calcTimingDeltas(File map, File replay) {
         Osr r = readOsr(readBufferFromFile(replay));
-        OsuMap m = readOsuObjs(osuMap);
-        List<TimingDelta> tes = calcTimingDeltas(m, r.replay_data);
-        new SwingWrapper<>(Chart.makeChart(tes)).displayChart();
+        OsuMap m = readOsuObjs(map);
+        return calcTimingDeltas(m, r.replay_data);
     }
 
     static List<TimingDelta> calcTimingDeltas(OsuMap map, List<ReplayFrame> replay) {
@@ -159,9 +158,9 @@ class Osr {
         Osr o = new Osr();
         o.mode = buf.get();
         o.version = buf.getInt();
-        o.beatmap_hash = readULEBString(buf);
-        o.player_name = readULEBString(buf);
-        o.replay_hash = readULEBString(buf);
+        o.beatmap_hash = OsuDB.readULEBString(buf);
+        o.player_name = OsuDB.readULEBString(buf);
+        o.replay_hash = OsuDB.readULEBString(buf);
         o.c300 = buf.getShort();
         o.c100 = buf.getShort();
         o.c50 = buf.getShort();
@@ -172,7 +171,7 @@ class Osr {
         o.maxcombo = buf.getShort();
         o.perfect = buf.get();
         o.mods = buf.getInt();
-        o.life_bar_graph = readULEBString(buf);
+        o.life_bar_graph = OsuDB.readULEBString(buf);
         o.timestamp = buf.getLong();
         o.replay_data_length = buf.getInt();
         byte [] replay_data = new byte[o.replay_data_length];
@@ -196,37 +195,6 @@ class Osr {
             o.replay_data.add(new ReplayFrame(w,x,y,z));
         }
         return o;
-    }
-
-    static String readULEBString(ByteBuffer buf) {
-        int s = buf.get();
-        if (s == 0x0b) {
-            int l = readULEBInt(buf);
-            byte str[] = new byte[l];
-            buf.get(str);
-            try {
-                return new String(str, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                return new String(str);
-            }
-        }
-        return "";
-    }
-
-    private static int readULEBInt(ByteBuffer buf) {
-        int result = 0;
-        int cur;
-        int count = 0;
-        do {
-            cur = buf.get() & 0xff;
-            result |= (cur & 0x7f) << (count * 7);
-            count++;
-        }
-        while (((cur & 0x80) == 0x80) && count < 5);
-        if ((cur & 0x80) == 0x80) {
-            throw new RuntimeException("invalid LEB128 sequence");
-        }
-        return result;
     }
 
     static class ReplayFrame {
