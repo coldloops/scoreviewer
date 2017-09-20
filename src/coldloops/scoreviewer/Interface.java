@@ -26,6 +26,7 @@ public class Interface {
     private JPanel mainPanel;
     private JLabel lblVersion;
     private JButton btnPlot;
+    private File osuDIR = null;
     private File osuDB = null;
     private File scoresDB = null;
     private File collecDB = null;
@@ -57,13 +58,13 @@ public class Interface {
                 fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 int r = fc.showOpenDialog(mainPanel);
                 if (r == JFileChooser.APPROVE_OPTION) {
-                    File dir = fc.getSelectedFile();
-                    osuDB = new File(dir, OSU_DB);
-                    scoresDB = new File(dir, SCORES_DB);
-                    collecDB = new File(dir, COLLECTION_DB);
+                    osuDIR = fc.getSelectedFile();
+                    osuDB = new File(osuDIR, OSU_DB);
+                    scoresDB = new File(osuDIR, SCORES_DB);
+                    collecDB = new File(osuDIR, COLLECTION_DB);
                     if (osuDB.exists() && scoresDB.exists() && collecDB.exists()) {
                         if (fw != null) fw.cancel(true);
-                        fw = new FileWatcher(dir);
+                        fw = new FileWatcher(osuDIR);
                         reloadData();
                         fw.execute();
                     } else {
@@ -85,10 +86,18 @@ public class Interface {
             ScoreDB.Score s = stm.getScoreAt(row);
             long xticks = s.timestamp - 504911232000000000L; // idk why
             String osr_file = s.beatmap_hash+"-"+xticks+".osr";
-            // File osr = new File(DIR+"/Data/r/"+osr_file);
-            // File osu = new File(DIR+"/Songs/"+bi.folder_name+"/"+bi.osu_filename);
-            // TODO: check if file exists
-            // Osr.makeTimingDeltaChart(osu, osr);
+            final File osr = new File(osuDIR+"/Data/r/"+osr_file);
+            final File osu = new File(osuDIR+"/Songs/"+bi.folder_name+"/"+bi.osu_filename);
+            System.out.println(osr);
+            System.out.println(osu);
+            if(osu.exists() && osr.exists()) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Osr.makeTimingDeltaChart(osu, osr);
+                    }
+                }).start();
+            }
             }
         });
     }
