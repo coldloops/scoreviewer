@@ -21,7 +21,6 @@ public class Interface {
     private static final String OSU_DB = "osu!.db";
     private static final String SCORES_DB = "scores.db";
     private static final String COLLECTION_DB = "collection.db";
-    private final JFrame frame;
     private JButton btnOpen;
     private JTable table;
     private JPanel mainPanel;
@@ -35,7 +34,6 @@ public class Interface {
     private FileWatcher fw = null;
 
     public Interface(final JFrame frame) {
-        this.frame = frame;
         lblVersion.setText(VERSION);
         lblVersion.setFont(new Font("SansSerif", Font.ITALIC, 12));
         Font f = new Font("SansSerif", Font.PLAIN, 16);
@@ -88,17 +86,16 @@ public class Interface {
                 ScoreDB.Score s = stm.getScoreAt(row);
                 long xticks = s.timestamp - 504911232000000000L; // idk why
                 String osr_file = s.beatmap_hash+"-"+xticks+".osr";
-                {
-                    Path osr = Paths.get(osuDIR.getAbsolutePath(), "Data", "r", osr_file);
-                    Path osu = Paths.get(osuDIR.getAbsolutePath(), "Songs", bi.folder_name.replaceAll("\\\\","/"), bi.osu_filename);
-                    //System.out.println(osr);
-                    //System.out.println(osu);
-                }
-                final File osr = new File("testdata/a.osr");
-                final File osu = new File("testdata/a.osu");
+                File osr = Paths.get(osuDIR.getAbsolutePath(), "Data", "r", osr_file).toFile();
+                File osu = Paths.get(osuDIR.getAbsolutePath(), "Songs", bi.folder_name.replaceAll("\\\\","/"), bi.osu_filename).toFile();
+                //System.out.println(osr);
+                //System.out.println(osu);
+                //final File osr = new File("testdata/a.osr");
+                //final File osu = new File("testdata/a.osu");
 
                 if(osu.exists() && osr.exists()) {
-                    new ChartDialog(frame, osu, osr).display();
+                    String title = s.player_name+"play of "+bi.artist_name +" - "+bi.song_title+" ["+bi.diff_name+"]";
+                    new ChartDialog(frame, title, osu, osr).display();
                 }
                 else {
                     JOptionPane.showMessageDialog(mainPanel, "No replay found for this score.");

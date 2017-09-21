@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
-class Osr {
+class OsuReplay {
     byte mode;
     int version;
     String beatmap_hash;
@@ -26,22 +26,18 @@ class Osr {
     long timestamp;
     int replay_data_length;
     List<ReplayFrame> replay_data;
+    int replay_seed;
     long unknown;
 
     public static void main(String[] args) {
-        // osr name is
-        // <beatmap_hash>-<xticks>.osr
-        // xticks is (score.timestamp - 504911232000000000)
-
-        File replay = new File("testdata/b.osr");
-        File osu = new File("testdata/b.osu");
-        new ChartDialog(null, osu, replay).display();
-        //makeTimingDeltaChart(f2, f);
+        File replay = new File("testdata/a.osr");
+        File osu = new File("testdata/a.osu");
+        new ChartDialog(null, "test", osu, replay).display();
         System.out.println("test");
     }
 
     static List<TimingDelta> calcTimingDeltas(File map, File replay) {
-        Osr r = readOsr(readBufferFromFile(replay));
+        OsuReplay r = readOsr(readBufferFromFile(replay));
         OsuMap m = readOsuObjs(map);
         return calcTimingDeltas(m, r.replay_data);
     }
@@ -154,8 +150,8 @@ class Osr {
         }
     }
 
-    private static Osr readOsr(ByteBuffer buf) {
-        Osr o = new Osr();
+    private static OsuReplay readOsr(ByteBuffer buf) {
+        OsuReplay o = new OsuReplay();
         o.mode = buf.get();
         o.version = buf.getInt();
         o.beatmap_hash = OsuDB.readULEBString(buf);
@@ -187,12 +183,20 @@ class Osr {
             throw new RuntimeException(e);
         }
         while(s.hasNext()) {
-            String parts [] = s.next().split("\\|");
-            int w = Integer.parseInt(parts[0]);
-            double x = Double.parseDouble(parts[1]);
-            double y = Double.parseDouble(parts[2]);
-            int z = Integer.parseInt(parts[3]);
-            o.replay_data.add(new ReplayFrame(w,x,y,z));
+            String frame = s.next();
+            if(frame.isEmpty()) continue;
+            String parts [] = frame.split("\\|");
+            if(parts.length < 4) continue;
+            if(parts[0].equals("-12345")) {
+                o.replay_seed = Integer.parseInt(parts[3]);
+            }
+            else {
+                int w = Integer.parseInt(parts[0]);
+                double x = Double.parseDouble(parts[1]);
+                double y = Double.parseDouble(parts[2]);
+                int z = Integer.parseInt(parts[3]);
+                o.replay_data.add(new ReplayFrame(w, x, y, z));
+            }
         }
         return o;
     }

@@ -19,13 +19,13 @@ public class ChartDialog extends JDialog {
     private JRadioButton rbt_scatter;
     private JRadioButton rbt_histo;
 
-    private List<Osr.TimingDelta> tes;
+    private List<OsuReplay.TimingDelta> tes;
 
-    public ChartDialog(JFrame parent, File osu, File replay) {
-        super(parent, "test", true);
+    public ChartDialog(JFrame parent, String title, File osu, File replay) {
+        super(parent, title, true);
         setContentPane(contentPane);
         getRootPane().setDefaultButton(buttonOK);
-        this.tes = Osr.calcTimingDeltas(osu, replay);
+        this.tes = OsuReplay.calcTimingDeltas(osu, replay);
 
         ButtonGroup rbt_group = new ButtonGroup();
         rbt_group.add(rbt_scatter);
@@ -50,7 +50,6 @@ public class ChartDialog extends JDialog {
         buttonOK.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 dispose();
-                System.exit(0); // TODO: remove this
             }
         });
     }
@@ -63,7 +62,7 @@ public class ChartDialog extends JDialog {
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
 
-    private static XYChart makeHistChart(List<Osr.TimingDelta> tes) {
+    private static XYChart makeHistChart(List<OsuReplay.TimingDelta> tes) {
         XYChart chart = new XYChartBuilder()
                 .theme(Styler.ChartTheme.Matlab)
                 .width(800).height(600)
@@ -78,7 +77,7 @@ public class ChartDialog extends JDialog {
         chart.getStyler().setMarkerSize(6);
 
         TreeMap<Integer, Integer> counts = new TreeMap<>();
-        for(Osr.TimingDelta t : tes) {
+        for(OsuReplay.TimingDelta t : tes) {
             if(t.type.equals("MISS")) continue;
             int c = 0;
             if(counts.containsKey(t.delta)) c = counts.get(t.delta);
@@ -103,7 +102,7 @@ public class ChartDialog extends JDialog {
         return chart;
     }
 
-    private static XYChart makeScatterChart(List<Osr.TimingDelta> tes) {
+    private static XYChart makeScatterChart(List<OsuReplay.TimingDelta> tes) {
         XYChart chart = new XYChartBuilder()
                 .theme(Styler.ChartTheme.Matlab)
                 .width(800).height(600)
@@ -116,7 +115,7 @@ public class ChartDialog extends JDialog {
 
         TreeMap<String, ArrayList<Double>> x = new TreeMap<>();
         TreeMap<String, ArrayList<Integer>> y = new TreeMap<>();
-        for(Osr.TimingDelta t : tes) {
+        for(OsuReplay.TimingDelta t : tes) {
             double minutes = t.curtime/1000d/60;
             if(!x.containsKey(t.type)) x.put(t.type,new ArrayList<Double>());
             if(!y.containsKey(t.type)) y.put(t.type,new ArrayList<Integer>());
