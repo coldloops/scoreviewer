@@ -17,7 +17,7 @@ import java.nio.file.*;
 import java.util.List;
 
 public class Interface {
-    private static final String VERSION = "V. 1.4  ";
+    private static final String VERSION = "V. 1.5  ";
     private static final String OSU_DB = "osu!.db";
     private static final String SCORES_DB = "scores.db";
     private static final String COLLECTION_DB = "collection.db";

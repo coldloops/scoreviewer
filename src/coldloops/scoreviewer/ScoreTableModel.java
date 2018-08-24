@@ -5,10 +5,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class ScoreTableModel extends AbstractTableModel {
 
@@ -43,6 +40,8 @@ class ScoreTableModel extends AbstractTableModel {
         new Col("collections", null, List.class),
         new Col("MAX%", "max percentage / total", Double.class),
         new Col("judgments", "max,300,200,100,50,miss", ScoreDB.Judgment.class),
+        new Col("cor", "score/time correlation", Double.class),
+        new Col("N", "number of scores", Integer.class),
     };
 
     // columns hidden by default
@@ -70,16 +69,29 @@ class ScoreTableModel extends AbstractTableModel {
             ScoreDB.BeatmapScores bs = s.beatmaps.get(e.getKey());
             if (bs == null) continue;
             if (bs.scores.length == 0) continue;
-            // scores are ordered max->min
-            // first is the highest
-            ScoreDB.Score s0 = bs.scores[0];
 
-            addRow(b, s0, c);
+            HashMap<Integer,List<ScoreDB.Score>> modsets = new HashMap<>();
+            for(ScoreDB.Score si : bs.scores) {
+                if(!modsets.containsKey(si.mods)) modsets.put(si.mods, new ArrayList<ScoreDB.Score>());
+                modsets.get(si.mods).add(si);
+            }
+            for(List<ScoreDB.Score> sl : modsets.values()){
+                addRow(b, sl, c);
+            }
         }
         fireTableDataChanged();
     }
 
-    private void addRow(OsuDB.BeatmapInfo b, ScoreDB.Score s, CollectionDB c) {
+    private void addRow(OsuDB.BeatmapInfo b, List<ScoreDB.Score> sl, CollectionDB c) {
+
+        // scores are ordered max->min
+        // first is the highest
+        ScoreDB.Score s = sl.get(0);
+        Double cor = null;
+        if(sl.size() >= 2) {
+            cor = Math.round(scoreTimeCorrelation(sl) * 1000.0) / 1000.0;
+        }
+
         double diff = b.mania_star_rating.get(0);
         if (s.mods > 0 && b.mania_star_rating.containsKey(s.mods)) {
             diff = b.mania_star_rating.get(s.mods);
@@ -126,7 +138,38 @@ class ScoreTableModel extends AbstractTableModel {
                 collecs,
                 maxp,
                 new ScoreDB.Judgment(s),
+                cor,
+                sl.size(),
         });
+    }
+
+    // https://stackoverflow.com/a/28428582
+    private static double scoreTimeCorrelation(List<ScoreDB.Score> s) {
+        double sx = 0.0;
+        double sy = 0.0;
+        double sxx = 0.0;
+        double syy = 0.0;
+        double sxy = 0.0;
+        int n = s.size();
+
+        for (ScoreDB.Score value : s) {
+            double x = value.score;
+            double y = ScoreDB.wticksToDate(value.timestamp).getTime();
+            sx += x;
+            sy += y;
+            sxx += x * x;
+            syy += y * y;
+            sxy += x * y;
+        }
+
+        // covariation
+        double cov = sxy / n - sx * sy / n / n;
+        // standard error of x
+        double sigmax = Math.sqrt(sxx / n -  sx * sx / n / n);
+        // standard error of y
+        double sigmay = Math.sqrt(syy / n -  sy * sy / n / n);
+        // correlation is just a normalized covariation
+        return cov / sigmax / sigmay;
     }
 
     private static String joinStrings(String sep, List<?> l) {
