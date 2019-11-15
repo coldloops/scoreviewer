@@ -135,8 +135,8 @@ class ScoreDB {
         K1(67108864),  // key 1
         K3(134217728), // key 3
         K2(268435456), // key 2
-        ScoreV2(536870912);// ScoreV2
-
+        ScoreV2(536870912),// ScoreV2
+        MR(1073741824);  // Mirror mod
         final int value;
         Mod(int v) { this.value = v; }
 

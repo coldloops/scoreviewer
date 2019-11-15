@@ -25,16 +25,16 @@ class OsuDB {
         o.n_beatmaps = buf.getInt();
         o.beatmaps = new HashMap<>();
         for (int i = 0; i < o.n_beatmaps; i++) {
-            BeatmapInfo bi = readBeatmapInfo(buf);
+            BeatmapInfo bi = readBeatmapInfo(o,buf);
             o.beatmaps.put(bi.beatmap_hash, bi);
         }
         o.unknown = buf.getInt();
         return o;
     }
 
-    private static BeatmapInfo readBeatmapInfo(ByteBuffer buf) {
+    private static BeatmapInfo readBeatmapInfo(OsuDB o, ByteBuffer buf) {
         BeatmapInfo b = new BeatmapInfo();
-        b.entry_size = buf.getInt();
+        if(o.version < 20191106) b.entry_size = buf.getInt();
         b.artist_name = readULEBString(buf);
         b.artist_name_unicode = readULEBString(buf);
         b.song_title = readULEBString(buf);
